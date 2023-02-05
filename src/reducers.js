@@ -1,3 +1,5 @@
+import { NOT_EKLE, NOT_SIL, INITIAL_LOAD } from "./actions";
+
 const s10chLocalStorageKey = "s10ch";
 
 const baslangicDegerleri = {
@@ -10,20 +12,52 @@ const baslangicDegerleri = {
   ],
 };
 
-function localStorageStateYaz(key, data) {
-  localStorage.setItem(key, JSON.stringify(data));
+function localStorageStateYaz(data) {
+  window.localStorage.setItem(s10chLocalStorageKey, JSON.stringify(data));
 }
 
-function localStorageStateOku(key) {
-  return JSON.parse(localStorage.getItem(key));
+function localStorageStateOku() {
+  return JSON.parse(window.localStorage.getItem(s10chLocalStorageKey));
 }
 
-function baslangicNotlariniGetir(key) {
-  const eskiNotlar = localStorage.getItem(key);
+function baslangicNotlariniGetir(s10chLocalStorageKey) {
+  const eskiNotlar = localStorage.getItem(s10chLocalStorageKey);
 
   if (eskiNotlar) {
-    return localStorageStateOku(key);
+    return localStorageStateOku(s10chLocalStorageKey);
   } else {
-    return baslangicDegerleri
+    return baslangicDegerleri;
+  }
+}
+
+export function reducer(state = baslangicDegerleri, action) {
+  switch (action.type) {
+    case INITIAL_LOAD:
+      return {
+        ...state,
+        notlar: localStorageStateOku(),
+      };
+    case NOT_EKLE:
+      localStorageStateYaz([...state.notlar, action.payload]);
+      let newNote = action.payload;
+      let copyNotes = [...state.notlar];
+      let resultNotesArray = [...copyNotes, newNote];
+      return {
+        ...state,
+        notlar: [...resultNotesArray],
+      };
+    case NOT_SIL:
+      let selectedNote = action.payload;
+      let copyNotes2 = [...state.notlar];
+      let resultNotesArray2 = copyNotes2.filter(
+        (note) => note.id !== selectedNote.id
+      );
+      localStorageStateYaz([...resultNotesArray2]);
+      return {
+        ...state,
+        notlar: [...resultNotesArray2],
+      };
+    default:
+      return state;
   }
 }
